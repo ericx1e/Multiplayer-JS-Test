@@ -4,18 +4,23 @@ var map;
 var width, height;
 var bullets = [];
 
-function setup() {
-  width = 1200;
-  height = 600;
-  const cv = createCanvas(width, height);
-  cv.background(51);
-  cv.position(100, 100);
+function reset() {
   x = 300;
   y = 300;
   xv = 0;
   yv = 0;
   size = 25;
   hp = 100;
+}
+
+function setup() {
+  width = 1200;
+  height = 600;
+  const cv = createCanvas(width, height);
+  cv.background(51);
+  cv.position(100, 100);
+
+  reset();
 
   map = [
     [0, height-100, width, 100],
@@ -29,7 +34,7 @@ function setup() {
   ];
 
 
-  socket = io.connect('https://2bb093cb.ngrok.io/');
+  socket = io.connect('https://3a34af3b.ngrok.io/');
   socket.on('player', newDrawing);
   socket.on('bullet', drawBullet);
   socket.on('background', drawBackground);
@@ -48,12 +53,19 @@ function drawBullet(data) {
   noStroke();
   fill(255, 100, 100);
   ellipse(data.x, data.y, 10, 10);
+  if(colliding(data.x-5, data.y-5, 10, 10, x, y, size, size)) {
+    hp-=5;
+  }
 }
 
 const SPD = 0.5;
 const BULLET_SPD = 15;
 
 function draw() {
+
+  if(hp <= 0) {
+    reset();
+  }
   fill(0, 25);
   rect(0, 0, width, height);
   map.forEach((item, i) => {
@@ -102,13 +114,19 @@ function draw() {
   socket.emit('player', data);
 
   otherPlayers.forEach((item, i) => {
-      fill(255, 100, 100);
-      rect(item.x, item.y, size, size);
-      rect(item.x+size/2-hp/2, item.y-size-10, hp, 10);
-      translate(item.x+size/2, item.y+size/2, size, size);
-      rotate(item.a);
-      rect(0, -5, 25, 10);
-      resetMatrix();
+    colorMode(RGB, 255);
+    fill(150);
+    rect(item.x+size/2-25, item.y-size/2, 50, 5);
+    colorMode(HSB, 255);
+    fill(item.hp, 255, 255);
+    rect(item.x+size/2-25, item.y-size/2, item.hp/2, 5);
+    colorMode(RGB, 255);
+    fill(255, 100, 100);
+    rect(item.x, item.y, size, size);
+    translate(item.x+size/2, item.y+size/2, size, size);
+    rotate(item.a);
+    rect(0, -5, 25, 10);
+    resetMatrix();
   });
 
 
@@ -117,6 +135,13 @@ function draw() {
   angle = Math.atan2((mouseY - y),(mouseX - x));
 
   noStroke();
+  colorMode(RGB, 255);
+  fill(150);
+  rect(x+size/2-25, y-size/2, 50, 5);
+  colorMode(HSB, 255);
+  fill(hp, 255, 255);
+  rect(x+size/2-25, y-size/2, hp/2, 5);
+  colorMode(RGB, 255);
   fill(100, 100, 255);
   rect(x, y, size, size);
   translate(x+size/2, y+size/2);
@@ -196,7 +221,7 @@ document.addEventListener('keyup', function(event) {
 var lastShot = 0;
 
 document.addEventListener('mousedown', function(event) {
-  if(frameCount - lastShot >= 30) {
+  if(frameCount - lastShot >= 15) {
     lastShot = frameCount;
     var data = {
       x: x+size/2,
