@@ -193,13 +193,18 @@ document.addEventListener('keyup', function(event) {
   }
 });
 
+var lastShot = 0;
+
 document.addEventListener('mousedown', function(event) {
-  var data = {
-    x: x+size/2,
-    y: y+size/2,
-    a: angle,
+  if(frameCount - lastShot >= 30) {
+    lastShot = frameCount;
+    var data = {
+      x: x+size/2,
+      y: y+size/2,
+      a: angle,
+    }
+    bullets.push(data);
   }
-  bullets.push(data);
 });
 
 
