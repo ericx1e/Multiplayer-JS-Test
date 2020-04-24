@@ -30,11 +30,14 @@ function setup() {
     [100, 100, 100, 25],
     [150, 300, 100, 25],
     [250, 400, 200, 25],
-    [500, 350, 150, 25]
+    [500, 350, 150, 25],
+    [450, 200, 25, height],
+    [375, 200, 200, 25],
+    [750, 425, 450, 200],
   ];
 
 
-  socket = io.connect('https://3a34af3b.ngrok.io/');
+  socket = io.connect('https://42b069f1.ngrok.io/');
   socket.on('player', newDrawing);
   socket.on('bullet', drawBullet);
   socket.on('background', drawBackground);
@@ -177,9 +180,24 @@ function updateBullets() {
     item.x += BULLET_SPD*Math.cos(item.a);
     item.y += BULLET_SPD*Math.sin(item.a);
     socket.emit('bullet', item);
+    if(item.b <= 0) {
+      bullets.splice(i, 1);
+    }
     map.forEach((wall, j) => {
-      if(colliding(item.x, item.y, 5, 5, wall[0], wall[1], wall[2], wall[3])) {
-        bullets.splice(i, 1);
+      if(colliding(item.x+BULLET_SPD*Math.cos(item.a), item.y+BULLET_SPD*Math.sin(item.a), 10, 10, wall[0], wall[1], wall[2], wall[3]) && item.x+BULLET_SPD*Math.cos(item.a) > wall[0] && item.x+BULLET_SPD*Math.cos(item.a) < wall[0] + wall[2] && (item.y < wall[1] || item.y > wall[1]+wall[3])) {
+        item.a=-item.a;
+        item.x += BULLET_SPD*Math.cos(item.a);
+        item.y += BULLET_SPD*Math.sin(item.a);
+        item.b--;
+      }
+      if(colliding(item.x+BULLET_SPD*Math.cos(item.a), item.y+BULLET_SPD*Math.sin(item.a), 10, 10, wall[0], wall[1], wall[2], wall[3]) && item.y+BULLET_SPD*Math.sin(item.a) > wall[1] && item.y+BULLET_SPD*Math.sin(item.a) < wall[1] + wall[3] && (item.x < wall[0] || item.x > wall[0]+wall[2])) {
+        item.a=Math.PI-item.a;
+        item.x += BULLET_SPD*Math.cos(item.a);
+        item.y += BULLET_SPD*Math.sin(item.a);
+        item.b--;
+      }
+      if(colliding(item.x-5, item.y-5, 10, 10, wall[0], wall[1], wall[2], wall[3])) {
+        
       }
     });
   });
@@ -227,6 +245,7 @@ document.addEventListener('mousedown', function(event) {
       x: x+size/2,
       y: y+size/2,
       a: angle,
+      b: 3,
     }
     bullets.push(data);
   }
