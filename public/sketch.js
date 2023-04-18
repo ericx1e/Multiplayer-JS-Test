@@ -37,7 +37,7 @@ function setup() {
   ];
 
 
-  socket = io.connect('https://first-app-tank-game.herokuapp.com/');
+  socket = io.connect('https://gentle-harbor-51512.herokuapp.com/');
   socket.on('player', newDrawing);
   socket.on('bullet', drawBullet);
   socket.on('background', drawBackground);
